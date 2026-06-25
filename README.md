@@ -4,13 +4,11 @@ This repository creates a clean review-level CSV for a student project on Yelp d
 
 Each row in the final dataset is one Yelp review for a dental practice. The review is joined with dental business metadata and area-level socioeconomic/demographic descriptors for the practice location.
 
-Important wording rule: the demographic and socioeconomic variables are area-level descriptors. They are not patient-level attributes and should not be described as patient ethnicity, patient income, or reviewer demographics.
-
 ## Data Sources
 
 ### Yelp Open Dataset
 
-Use the Yelp Open Dataset. Do not scrape Yelp web pages.
+Use the Yelp Open Dataset.
 
 Official source:
 
@@ -18,11 +16,6 @@ Official source:
 https://business.yelp.com/data/resources/open-dataset/
 ```
 
-Alternative Kaggle mirror:
-
-```text
-https://www.kaggle.com/datasets/yelp-dataset/yelp-dataset
-```
 
 After downloading/extracting the Yelp data, place these two files in `data/raw/`:
 
@@ -49,19 +42,12 @@ If a Census API key is available, set it before running the script:
 export CENSUS_API_KEY="your_key_here"
 ```
 
-If no key is set, the script falls back to Census Reporter and the Census coordinate geocoder. This is intentional because city/place-level matching is more reliable for this beginner project than tract-level geocoding.
+If no key is set, the script falls back to Census Reporter and the Census coordinate geocoder. 
 
 ## Setup
 
 From the repository root:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-If you prefer Conda:
 
 ```bash
 conda env create -f environment.yml
@@ -176,26 +162,3 @@ Target definitions:
 satisfied_binary = 1 if review_stars >= 4, else 0
 negative_binary = 1 if review_stars <= 2, else 0
 ```
-
-## Methodology Note
-
-Use careful language in the report:
-
-Good wording:
-
-```text
-area-level socioeconomic context
-city-level demographic descriptor
-census-area demographic composition
-```
-
-Avoid:
-
-```text
-patient ethnicity
-patient income
-reviewer ethnicity
-reviewer income
-```
-
-The area-level variables are generalized context for the dental practice location.
