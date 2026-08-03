@@ -1,0 +1,12 @@
+| column | present | non_null_count | missing_count | missing_percent | all_null |
+| --- | --- | --- | --- | --- | --- |
+| area_median_household_income | True | 0 | 35132 | 100.0000 | True |
+| area_poverty_rate | True | 0 | 35132 | 100.0000 | True |
+| area_bachelor_plus_rate | True | 0 | 35132 | 100.0000 | True |
+| area_unemployment_rate | True | 0 | 35132 | 100.0000 | True |
+| area_pct_white | True | 0 | 35132 | 100.0000 | True |
+| area_pct_black | True | 0 | 35132 | 100.0000 | True |
+| area_pct_asian | True | 0 | 35132 | 100.0000 | True |
+| area_pct_hispanic_or_latino | True | 0 | 35132 | 100.0000 | True |
+| area_largest_demographic_group | True | 0 | 35132 | 100.0000 | True |
+| area_largest_demographic_share | True | 0 | 35132 | 100.0000 | True |
