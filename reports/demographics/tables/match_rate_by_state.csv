@@ -1,0 +1,14 @@
+business_state,business_denominator,business_any_feature_count,business_any_feature_rate,business_matched_count,business_unmatched_count,review_denominator,review_any_feature_count,review_any_feature_rate,review_matched_count,review_unmatched_count,business_missing_postal_code_count,review_missing_postal_code_count,business_invalid_or_non_us_postal_code_count,review_invalid_or_non_us_postal_code_count,business_zcta_not_returned_count,review_zcta_not_returned_count
+AZ,201,201,100.0,201,0,3285,3285,100.0,3285,0,0,0,0,0,0,0
+CA,115,115,100.0,115,0,2583,2583,100.0,2583,0,0,0,0,0,0,0
+DE,16,16,100.0,16,0,201,201,100.0,201,0,0,0,0,0,0,0
+FL,511,511,100.0,511,0,6207,6207,100.0,6207,0,0,0,0,0,0,0
+ID,74,74,100.0,74,0,741,741,100.0,741,0,0,0,0,0,0,0
+IL,30,30,100.0,30,0,249,249,100.0,249,0,0,0,0,0,0,0
+IN,171,171,100.0,171,0,1939,1939,100.0,1939,0,0,0,0,0,0,0
+LA,97,97,100.0,97,0,1399,1399,100.0,1399,0,0,0,0,0,0,0
+MO,158,158,100.0,158,0,1889,1889,100.0,1889,0,0,0,0,0,0,0
+NJ,137,136,99.27007299270073,137,0,1428,1421,99.50980392156863,1428,0,0,0,0,0,0,0
+NV,186,186,100.0,186,0,3919,3919,100.0,3919,0,0,0,0,0,0,0
+PA,606,605,99.83498349834983,606,0,8729,8721,99.90835147210448,8729,0,0,0,0,0,0,0
+TN,196,196,100.0,196,0,2563,2563,100.0,2563,0,0,0,0,0,0,0

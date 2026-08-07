@@ -28,15 +28,15 @@ The pipeline only needs those two JSON files.
 
 ### Area-Level Demographic Data
 
-The script `src/get_area_demographics.py` retrieves area-level descriptors from public Census-related sources:
+The script `src/enrich_zcta_demographics.py` retrieves area-level socioeconomic and demographic descriptors from the U.S. Census ACS API using each dental business postal code as a ZIP/ZCTA candidate:
 
 ```text
 https://api.census.gov/data.html
-https://censusreporter.org/
-https://geocoding.geo.census.gov/
 ```
 
-If a Census API key is available, set it before running the script:
+These variables describe the Census area around the dental practice. They are **not** individual patient, reviewer, or dentist demographics.
+
+Set a Census API key before running the demographic enrichment script:
 
 ```bash
 export CENSUS_API_KEY="your_key_here"
@@ -58,7 +58,7 @@ python src/smoke_test_census_api.py
 
 The smoke test prints a small JSON status summary and does not print the API key.
 
-If no key is set, the script falls back to Census Reporter and the Census coordinate geocoder. 
+The main enrichment script caches the processed ACS ZCTA catalogue locally so later runs can reuse it without refetching. Use `--refresh-cache` when you intentionally want to download a fresh catalogue.
 
 ## Setup
 
@@ -98,16 +98,27 @@ python src/filter_yelp_dental.py --max-review-chunks 1
 ### 2. Add Area-Level Demographic Descriptors
 
 ```bash
-python src/get_area_demographics.py
+python src/enrich_zcta_demographics.py --refresh-cache
+```
+
+For later reruns, you can omit `--refresh-cache` to reuse the existing processed ACS ZCTA catalogue:
+
+```bash
+python src/enrich_zcta_demographics.py
 ```
 
 This creates:
 
 ```text
-data/interim/area_demographics.csv
+data/interim/zcta_area_demographics.csv
+data/interim/business_zcta_demographics.csv
+reports/demographics/coverage_report.md
+reports/demographics/tables/non_null_rates.csv
+reports/demographics/tables/match_rate_by_state.csv
+reports/demographics/tables/match_rate_by_city.csv
 ```
 
-The demographic fields are linked by business location. They describe the area around the dental practice, not individual patients or reviewers.
+The demographic fields are linked by `business_id` using the dental practice location. They describe the area around the dental practice, not individual patients or reviewers.
 
 ### 3. Build The Final Dataset
 
@@ -120,6 +131,8 @@ This creates:
 ```text
 data/final/dental_review_satisfaction_dataset.csv
 ```
+
+`src/build_final_dataset.py` expects `data/interim/business_zcta_demographics.csv` and merges the ZCTA enrichment by `business_id`.
 
 ### 4. Validate The Dataset
 
