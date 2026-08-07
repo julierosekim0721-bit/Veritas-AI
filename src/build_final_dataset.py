@@ -15,8 +15,29 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BASE_CSV = PROJECT_ROOT / "data/interim/dental_review_business_base.csv"
-DEMOGRAPHICS_CSV = PROJECT_ROOT / "data/interim/area_demographics.csv"
+DEMOGRAPHICS_CSV = PROJECT_ROOT / "data/interim/business_zcta_demographics.csv"
 FINAL_CSV = PROJECT_ROOT / "data/final/dental_review_satisfaction_dataset.csv"
+
+ENRICHMENT_COLUMNS = [
+    "business_id",
+    "business_zcta",
+    "zcta_match_status",
+    "zcta_match_reason",
+    "area_context_note",
+    "census_geo_name",
+    "census_geo_level",
+    "acs_year",
+    "acs_dataset",
+    "data_source",
+    "area_median_household_income",
+    "area_poverty_rate",
+    "area_bachelor_plus_rate",
+    "area_unemployment_rate",
+    "area_pct_white",
+    "area_pct_black",
+    "area_pct_asian",
+    "area_pct_hispanic_or_latino",
+]
 
 DEMOGRAPHIC_COLUMNS = {
     "area_pct_white": "White",
@@ -108,35 +129,27 @@ def require_file(path: Path, upstream_hint: str) -> None:
 
 def main() -> None:
     require_file(BASE_CSV, "Run src/filter_yelp_dental.py first.")
-    require_file(DEMOGRAPHICS_CSV, "Run src/get_area_demographics.py first.")
+    require_file(DEMOGRAPHICS_CSV, "Run src/enrich_zcta_demographics.py first.")
 
     base = pd.read_csv(BASE_CSV)
-    demographics = pd.read_csv(DEMOGRAPHICS_CSV)
+    demographics = pd.read_csv(DEMOGRAPHICS_CSV, dtype={"business_zcta": "string"})
+    missing_columns = [column for column in ENRICHMENT_COLUMNS if column not in demographics.columns]
+    if missing_columns:
+        raise ValueError(
+            "Business ZCTA enrichment is missing required columns: "
+            f"{', '.join(missing_columns)}. Run src/enrich_zcta_demographics.py."
+        )
+    if demographics["business_id"].isna().any() or demographics["business_id"].duplicated().any():
+        raise ValueError("Business ZCTA enrichment requires unique non-null business_id values")
 
-    # City names can be written differently across sources, so both tables get
-    # the same normalized city/state key before merging.
-    base["city_state_key"] = [
-        city_state_key(city, state) for city, state in zip(base["business_city"], base["business_state"])
-    ]
-    demographics["city_state_key"] = [
-        city_state_key(city, state)
-        for city, state in zip(demographics["business_city"], demographics["business_state"])
-    ]
-
-    area_columns = [
-        "city_state_key",
-        "census_geo_name",
-        "census_geo_level",
-        "area_median_household_income",
-        "area_poverty_rate",
-        "area_bachelor_plus_rate",
-        "area_unemployment_rate",
-        "area_pct_white",
-        "area_pct_black",
-        "area_pct_asian",
-        "area_pct_hispanic_or_latino",
-    ]
-    merged = base.merge(demographics[area_columns].drop_duplicates("city_state_key"), on="city_state_key", how="left")
+    # Area descriptors attach to each practice through its business identity,
+    # never through reviewer identity or a potentially ambiguous city name.
+    merged = base.merge(
+        demographics[ENRICHMENT_COLUMNS],
+        on="business_id",
+        how="left",
+        validate="many_to_one",
+    )
 
     # Target labels for simple classification:
     # satisfied_binary is the main outcome, and negative_binary is useful for EDA.

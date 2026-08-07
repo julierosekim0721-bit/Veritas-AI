@@ -1,0 +1,10 @@
+| metric | value |
+| --- | --- |
+| rows | 35132 |
+| columns | 36 |
+| unique_businesses | 2498 |
+| unique_cities | 294 |
+| unique_states | 13 |
+| demographically_matched_rows | 0 |
+| satisfied_target_mismatches | 0 |
+| negative_target_mismatches | 0 |

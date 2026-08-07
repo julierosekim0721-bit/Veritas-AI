@@ -28,21 +28,72 @@ The pipeline only needs those two JSON files.
 
 ### Area-Level Demographic Data
 
-The script `src/get_area_demographics.py` retrieves area-level descriptors from public Census-related sources:
+The script `src/enrich_zcta_demographics.py` retrieves area-level socioeconomic and demographic descriptors from the U.S. Census ACS API using each dental business postal code as a ZIP/ZCTA candidate:
 
 ```text
 https://api.census.gov/data.html
-https://censusreporter.org/
-https://geocoding.geo.census.gov/
 ```
 
-If a Census API key is available, set it before running the script:
+These variables describe the Census area around the dental practice. They are **not** individual patient, reviewer, or dentist demographics.
 
-```bash
-export CENSUS_API_KEY="your_key_here"
-```
+#### Census API key setup
 
-If no key is set, the script falls back to Census Reporter and the Census coordinate geocoder. 
+The demographic enrichment step requires a free U.S. Census API key.
+
+1. Request a key from the official Census signup page:
+
+   ```text
+   https://api.census.gov/data/key_signup.html
+   ```
+
+2. Fill in the form:
+
+   ```text
+   Organization Name: Student Research Project
+   Email Address: your email address
+   ```
+
+   Then agree to the terms and submit the form. The key should be emailed to you.
+
+3. Store the key locally. Do **not** paste the real key into GitHub, notebooks, reports, screenshots, or shared chat messages.
+
+   Temporary terminal option:
+
+   ```bash
+   export CENSUS_API_KEY="paste_your_key_here"
+   ```
+
+   Recommended project option: create a local `.env` file in the repository root:
+
+   ```text
+   CENSUS_API_KEY=paste_your_key_here
+   ```
+
+   The `.env` file is ignored by Git, so it stays on your machine only.
+
+4. Test the key before running the full demographic pipeline:
+
+   ```bash
+   python src/smoke_test_census_api.py
+   ```
+
+   A working key should print a small JSON summary like this:
+
+   ```json
+   {
+     "json_ok": true,
+     "rows": 2,
+     "sample_name": "ZCTA5 19104",
+     "sample_income_present": true,
+     "status": "ok"
+   }
+   ```
+
+   The smoke test does not print the API key.
+
+If the smoke test says `CENSUS_API_KEY is not set`, check that either your terminal has the environment variable exported or your `.env` file is in the repository root.
+
+The main enrichment script caches the processed ACS ZCTA catalogue locally so later runs can reuse it without refetching. Use `--refresh-cache` when you intentionally want to download a fresh catalogue.
 
 ## Setup
 
@@ -81,17 +132,44 @@ python src/filter_yelp_dental.py --max-review-chunks 1
 
 ### 2. Add Area-Level Demographic Descriptors
 
+First verify that the Census key works:
+
 ```bash
-python src/get_area_demographics.py
+python src/smoke_test_census_api.py
+```
+
+Then generate the ZCTA-level demographic dataset:
+
+```bash
+python src/enrich_zcta_demographics.py --refresh-cache
+```
+
+For later reruns, you can omit `--refresh-cache` to reuse the existing processed ACS ZCTA catalogue:
+
+```bash
+python src/enrich_zcta_demographics.py
 ```
 
 This creates:
 
 ```text
-data/interim/area_demographics.csv
+data/interim/zcta_area_demographics.csv
+data/interim/business_zcta_demographics.csv
+reports/demographics/coverage_report.md
+reports/demographics/tables/non_null_rates.csv
+reports/demographics/tables/match_rate_by_state.csv
+reports/demographics/tables/match_rate_by_city.csv
 ```
 
-The demographic fields are linked by business location. They describe the area around the dental practice, not individual patients or reviewers.
+What these files mean:
+
+- `zcta_area_demographics.csv`: one row per ACS ZCTA returned by the Census API.
+- `business_zcta_demographics.csv`: one row per Yelp dental business, joined to its ZCTA demographic context when available.
+- `coverage_report.md`: a human-readable report showing how many businesses and reviews received demographic data.
+- `non_null_rates.csv`: feature-level missingness for business-weighted and review-weighted coverage.
+- `match_rate_by_state.csv` and `match_rate_by_city.csv`: geographic coverage checks.
+
+The demographic fields are linked by `business_id` using the dental practice location. They describe the area around the dental practice, not individual patients or reviewers.
 
 ### 3. Build The Final Dataset
 
@@ -105,6 +183,8 @@ This creates:
 data/final/dental_review_satisfaction_dataset.csv
 ```
 
+`src/build_final_dataset.py` expects `data/interim/business_zcta_demographics.csv` and merges the ZCTA enrichment by `business_id`.
+
 ### 4. Validate The Dataset
 
 ```bash
@@ -112,6 +192,16 @@ python src/validate_dataset.py
 ```
 
 This prints row counts, missing values, star distributions, target distributions, and the number of rows with area-level demographic matches.
+
+For the current dental review dataset, a successful rebuild should report approximately:
+
+```text
+Rows: 35,132
+Unique businesses: 2,498
+Rows with successful area-level demographic match: 35,117
+```
+
+Small differences are possible if the raw Yelp data or Census ACS data vintage changes, but the important check is that the demographic match count is far above zero and the final row count is preserved from `data/interim/dental_review_business_base.csv`.
 
 ## Final Dataset
 
