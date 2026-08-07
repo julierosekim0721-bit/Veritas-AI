@@ -42,6 +42,22 @@ If a Census API key is available, set it before running the script:
 export CENSUS_API_KEY="your_key_here"
 ```
 
+Alternatively, create a local `.env` file in the repository root:
+
+```text
+CENSUS_API_KEY=your_key_here
+```
+
+Do not commit `.env` or paste the key into notebooks, reports, or source code. The repository ignores `.env` by default.
+
+Before running the full demographic pipeline, verify that Census access works:
+
+```bash
+python src/smoke_test_census_api.py
+```
+
+The smoke test prints a small JSON status summary and does not print the API key.
+
 If no key is set, the script falls back to Census Reporter and the Census coordinate geocoder. 
 
 ## Setup

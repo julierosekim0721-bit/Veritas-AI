@@ -21,6 +21,8 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
+from census_api import load_dotenv
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INTERIM_DIR = PROJECT_ROOT / "data/interim"
@@ -103,6 +105,7 @@ STATE_FIPS = {
 
 
 def parse_args() -> argparse.Namespace:
+    load_dotenv(PROJECT_ROOT / ".env")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=BUSINESSES_CSV)
     parser.add_argument("--output", type=Path, default=OUTPUT_CSV)
