@@ -36,27 +36,62 @@ https://api.census.gov/data.html
 
 These variables describe the Census area around the dental practice. They are **not** individual patient, reviewer, or dentist demographics.
 
-Set a Census API key before running the demographic enrichment script:
+#### Census API key setup
 
-```bash
-export CENSUS_API_KEY="your_key_here"
-```
+The demographic enrichment step requires a free U.S. Census API key.
 
-Alternatively, create a local `.env` file in the repository root:
+1. Request a key from the official Census signup page:
 
-```text
-CENSUS_API_KEY=your_key_here
-```
+   ```text
+   https://api.census.gov/data/key_signup.html
+   ```
 
-Do not commit `.env` or paste the key into notebooks, reports, or source code. The repository ignores `.env` by default.
+2. Fill in the form:
 
-Before running the full demographic pipeline, verify that Census access works:
+   ```text
+   Organization Name: Student Research Project
+   Email Address: your email address
+   ```
 
-```bash
-python src/smoke_test_census_api.py
-```
+   Then agree to the terms and submit the form. The key should be emailed to you.
 
-The smoke test prints a small JSON status summary and does not print the API key.
+3. Store the key locally. Do **not** paste the real key into GitHub, notebooks, reports, screenshots, or shared chat messages.
+
+   Temporary terminal option:
+
+   ```bash
+   export CENSUS_API_KEY="paste_your_key_here"
+   ```
+
+   Recommended project option: create a local `.env` file in the repository root:
+
+   ```text
+   CENSUS_API_KEY=paste_your_key_here
+   ```
+
+   The `.env` file is ignored by Git, so it stays on your machine only.
+
+4. Test the key before running the full demographic pipeline:
+
+   ```bash
+   python src/smoke_test_census_api.py
+   ```
+
+   A working key should print a small JSON summary like this:
+
+   ```json
+   {
+     "json_ok": true,
+     "rows": 2,
+     "sample_name": "ZCTA5 19104",
+     "sample_income_present": true,
+     "status": "ok"
+   }
+   ```
+
+   The smoke test does not print the API key.
+
+If the smoke test says `CENSUS_API_KEY is not set`, check that either your terminal has the environment variable exported or your `.env` file is in the repository root.
 
 The main enrichment script caches the processed ACS ZCTA catalogue locally so later runs can reuse it without refetching. Use `--refresh-cache` when you intentionally want to download a fresh catalogue.
 
@@ -97,6 +132,14 @@ python src/filter_yelp_dental.py --max-review-chunks 1
 
 ### 2. Add Area-Level Demographic Descriptors
 
+First verify that the Census key works:
+
+```bash
+python src/smoke_test_census_api.py
+```
+
+Then generate the ZCTA-level demographic dataset:
+
 ```bash
 python src/enrich_zcta_demographics.py --refresh-cache
 ```
@@ -117,6 +160,14 @@ reports/demographics/tables/non_null_rates.csv
 reports/demographics/tables/match_rate_by_state.csv
 reports/demographics/tables/match_rate_by_city.csv
 ```
+
+What these files mean:
+
+- `zcta_area_demographics.csv`: one row per ACS ZCTA returned by the Census API.
+- `business_zcta_demographics.csv`: one row per Yelp dental business, joined to its ZCTA demographic context when available.
+- `coverage_report.md`: a human-readable report showing how many businesses and reviews received demographic data.
+- `non_null_rates.csv`: feature-level missingness for business-weighted and review-weighted coverage.
+- `match_rate_by_state.csv` and `match_rate_by_city.csv`: geographic coverage checks.
 
 The demographic fields are linked by `business_id` using the dental practice location. They describe the area around the dental practice, not individual patients or reviewers.
 
@@ -141,6 +192,16 @@ python src/validate_dataset.py
 ```
 
 This prints row counts, missing values, star distributions, target distributions, and the number of rows with area-level demographic matches.
+
+For the current dental review dataset, a successful rebuild should report approximately:
+
+```text
+Rows: 35,132
+Unique businesses: 2,498
+Rows with successful area-level demographic match: 35,117
+```
+
+Small differences are possible if the raw Yelp data or Census ACS data vintage changes, but the important check is that the demographic match count is far above zero and the final row count is preserved from `data/interim/dental_review_business_base.csv`.
 
 ## Final Dataset
 
