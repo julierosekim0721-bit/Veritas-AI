@@ -1,0 +1,9 @@
+{
+  "train_rows": 28044,
+  "test_rows": 7088,
+  "train_businesses": 1998,
+  "test_businesses": 500,
+  "business_overlap": 0,
+  "best_model": "text_plus_metadata_demographics_logistic",
+  "best_balanced_accuracy": 0.9550477016965483
+}

@@ -1,0 +1,99 @@
+{
+  "data_path": "data/final/dental_review_satisfaction_dataset.csv",
+  "rows": 35132,
+  "columns": 43,
+  "class_counts": {
+    "0": 11262,
+    "1": 23870
+  },
+  "star_counts": {
+    "1": 9153,
+    "2": 1413,
+    "3": 696,
+    "4": 1685,
+    "5": 22185
+  },
+  "coverage": {
+    "area_median_household_income": {
+      "non_null": 35087,
+      "rate": 0.9987191164750086
+    },
+    "area_poverty_rate": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_bachelor_plus_rate": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_unemployment_rate": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_pct_white": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_pct_black": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_pct_asian": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_pct_hispanic_or_latino": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "area_largest_demographic_group": {
+      "non_null": 35117,
+      "rate": 0.9995730388250028
+    },
+    "business_zcta": {
+      "non_null": 35132,
+      "rate": 1.0
+    },
+    "zcta_match_status": {
+      "non_null": 35132,
+      "rate": 1.0
+    }
+  },
+  "income_band_satisfaction_spread": 0.16113882393166568,
+  "demographic_quintile_satisfaction_spreads": {
+    "area_median_household_income": 0.09487353056696535,
+    "area_poverty_rate": 0.07246185930439164,
+    "area_bachelor_plus_rate": 0.12914309655703127,
+    "area_unemployment_rate": 0.08548625711545765,
+    "area_pct_white": 0.08572160834451925,
+    "area_pct_black": 0.0971653241839523,
+    "area_pct_asian": 0.051439754939346605,
+    "area_pct_hispanic_or_latino": 0.05876560936184172
+  },
+  "largest_group_satisfaction_spread": 0.07389593088836621,
+  "state_satisfaction_spread": 0.2067895984304653,
+  "ml_split": {
+    "train_rows": 28044,
+    "test_rows": 7088,
+    "train_businesses": 1998,
+    "test_businesses": 500,
+    "business_overlap": 0,
+    "best_model": "text_plus_metadata_demographics_logistic",
+    "best_balanced_accuracy": 0.9550477016965483
+  },
+  "figures": [
+    "figures/01_demographic_missingness.png",
+    "figures/02_target_class_balance.png",
+    "figures/03_review_star_distribution.png",
+    "figures/04_review_length_by_satisfaction.png",
+    "figures/05_satisfaction_by_income_band.png",
+    "figures/06_satisfaction_by_demographic_quintiles.png",
+    "figures/07_satisfaction_by_largest_demographic_group.png",
+    "figures/08_satisfaction_by_state.png",
+    "figures/09_correlation_with_satisfaction.png",
+    "figures/10_metadata_demographic_correlation_heatmap.png",
+    "figures/11_location_scatter_by_satisfaction.png",
+    "figures/12_grouped_ml_signal_benchmark.png",
+    "figures/13_best_model_confusion_matrix.png"
+  ]
+}
