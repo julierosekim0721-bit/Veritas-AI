@@ -1,0 +1,185 @@
+{
+  "seed": 42,
+  "input_sha256": "4f6100fc18d4a0ab484824f79ed6b3f9795a845adf0964b863ff04ed239012f8",
+  "commit": "a83b50f1dee0425937462854acb43d96a6edd1fe",
+  "invocation": "python src/train_final_grouped_satisfaction_model.py --data data/final/dental_review_satisfaction_dataset.csv --model-out models/final_grouped_satisfaction_model.joblib --report-dir reports/ml --figures-dir figures/ml --test-size 0.2 --random-seed 42 --max-features 5000 --min-df 5 --top-k 20 --overwrite",
+  "versions": {
+    "python": "3.11.15",
+    "sklearn": "1.9.0",
+    "joblib": "1.5.3",
+    "pandas": "3.0.5",
+    "numpy": "2.4.6",
+    "matplotlib": "3.11.1"
+  },
+  "final_model": "tfidf_text_metadata_demographics_logistic",
+  "split_summary": {
+    "seed": 42,
+    "test_size": 0.2,
+    "splitter": "GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=42)",
+    "input_sha256": "4f6100fc18d4a0ab484824f79ed6b3f9795a845adf0964b863ff04ed239012f8",
+    "data_path": "data/final/dental_review_satisfaction_dataset.csv",
+    "rows_total": 35132,
+    "rows_train": 28044,
+    "rows_test": 7088,
+    "groups_total": 2498,
+    "groups_train": 1998,
+    "groups_test": 500,
+    "class_counts_total": {
+      "0": 11262,
+      "1": 23870
+    },
+    "class_counts_train": {
+      "0": 8873,
+      "1": 19171
+    },
+    "class_counts_test": {
+      "0": 2389,
+      "1": 4699
+    },
+    "business_overlap_train_test": 0
+  },
+  "feature_policy": "Safe metadata: review_length_words, review_year, log1p(business_review_count). Demographics: the eight area_* numeric ACS features from the enriched EDA (median-imputed, standard-scaled). Text: review_text (null -> \"\"), TF-IDF English stop words, 1-2 grams, max_features=5000, min_df=5. Classifier: LogisticRegression(max_iter=1000, class_weight='balanced', random_state=42). Hard-excluded from every model: review_stars, business_stars, IDs, target columns, useful/funny/cool, and unapproved categorical/location fields (mechanically asserted via the feature registry).",
+  "deltas_full_vs_text_only": {
+    "accuracy_delta_full_vs_text_only": 0.0014108352144469594,
+    "balanced_accuracy_delta_full_vs_text_only": 0.0012698301278176727,
+    "macro_f1_delta_full_vs_text_only": 0.0015320925704627175,
+    "roc_auc_delta_full_vs_text_only": -0.0003987204245604614
+  },
+  "models": {
+    "majority_class_dummy": {
+      "accuracy": 0.662951467268623,
+      "balanced_accuracy": 0.5,
+      "macro_f1": 0.3986595401713752,
+      "roc_auc": 0.5,
+      "minority_label": 0,
+      "minority_support": 2389,
+      "minority_precision": 0.0,
+      "minority_recall": 0.0,
+      "minority_f1": 0.0,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "matrix": [
+          [
+            0,
+            2389
+          ],
+          [
+            0,
+            4699
+          ]
+        ]
+      }
+    },
+    "safe_metadata_logistic": {
+      "accuracy": 0.7003386004514672,
+      "balanced_accuracy": 0.6631851971746435,
+      "macro_f1": 0.6636836839770688,
+      "roc_auc": 0.7102318021227855,
+      "minority_label": 0,
+      "minority_support": 2389,
+      "minority_precision": 0.556167867740568,
+      "minority_recall": 0.5491837588949351,
+      "minority_f1": 0.552653748946925,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "matrix": [
+          [
+            1312,
+            1077
+          ],
+          [
+            1047,
+            3652
+          ]
+        ]
+      }
+    },
+    "demographics_logistic": {
+      "accuracy": 0.5244074492099323,
+      "balanced_accuracy": 0.5345099831986909,
+      "macro_f1": 0.5144506899163148,
+      "roc_auc": 0.5460089163365005,
+      "minority_label": 0,
+      "minority_support": 2389,
+      "minority_precision": 0.36672095548317046,
+      "minority_recall": 0.5655085809962327,
+      "minority_f1": 0.44492013831714144,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "matrix": [
+          [
+            1351,
+            1038
+          ],
+          [
+            2333,
+            2366
+          ]
+        ]
+      }
+    },
+    "tfidf_text_logistic": {
+      "accuracy": 0.9535835214446953,
+      "balanced_accuracy": 0.9537778715687306,
+      "macro_f1": 0.9486401053754059,
+      "roc_auc": 0.9902256485019344,
+      "minority_label": 0,
+      "minority_support": 2389,
+      "minority_precision": 0.912,
+      "minority_recall": 0.9543742151527836,
+      "minority_f1": 0.9327060748619349,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "matrix": [
+          [
+            2280,
+            109
+          ],
+          [
+            220,
+            4479
+          ]
+        ]
+      }
+    },
+    "tfidf_text_metadata_demographics_logistic": {
+      "accuracy": 0.9549943566591422,
+      "balanced_accuracy": 0.9550477016965483,
+      "macro_f1": 0.9501721979458686,
+      "roc_auc": 0.9898269280773739,
+      "minority_label": 0,
+      "minority_support": 2389,
+      "minority_precision": 0.9149959903769046,
+      "minority_recall": 0.9552113855169527,
+      "minority_f1": 0.934671308621749,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "matrix": [
+          [
+            2282,
+            107
+          ],
+          [
+            212,
+            4487
+          ]
+        ]
+      }
+    }
+  }
+}
