@@ -261,6 +261,23 @@ def load_dataset(data_path: Path) -> pd.DataFrame:
     return df
 
 
+def validate_binary_target(df: pd.DataFrame) -> None:
+    """Reject non-integral or non-binary target values before any int cast."""
+    y = pd.to_numeric(df[TARGET], errors="coerce")
+    if y.isna().any():
+        fail(f"target column {TARGET} contains non-numeric values")
+    non_integer = y[y % 1 != 0]
+    if not non_integer.empty:
+        examples = ", ".join(str(v) for v in non_integer.unique()[:5])
+        fail(
+            f"target column {TARGET} must be binary 0/1; "
+            f"found non-integral values: {examples}"
+        )
+    labels = set(y.dropna().astype(int).unique().tolist())
+    if not labels <= {0, 1}:
+        fail(f"target column {TARGET} must be binary 0/1; found {sorted(labels)}")
+
+
 def validate_dataframe(df: pd.DataFrame) -> None:
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
@@ -269,13 +286,7 @@ def validate_dataframe(df: pd.DataFrame) -> None:
     if df.empty:
         fail("dataset is empty")
 
-    y = pd.to_numeric(df[TARGET], errors="coerce")
-    if y.isna().any():
-        fail(f"target column {TARGET} contains non-numeric values")
-    labels = set(pd.unique(y.astype(int)).tolist())
-    if not labels <= {0, 1}:
-        fail(f"target column {TARGET} must be binary 0/1; found {sorted(labels)}")
-
+    validate_binary_target(df)
     text = df[TEXT].fillna("").astype(str).str.strip()
     if text.eq("").all():
         fail(f"text column {TEXT} is empty after null-fill; nothing to vectorize")
@@ -290,6 +301,7 @@ def validate_dataframe(df: pd.DataFrame) -> None:
 def prepare_model_frame(df: pd.DataFrame) -> pd.DataFrame:
     """Build the working frame with safe metadata and null-filled text."""
     assert_feature_registry(FEATURE_REGISTRY)
+    validate_binary_target(df)
     work = df[list(dict.fromkeys(REQUIRED_COLUMNS + ["review_id"]))].copy()
     work[TEXT] = work[TEXT].fillna("").astype(str)
     work[TARGET] = pd.to_numeric(work[TARGET], errors="coerce").astype(int)
@@ -508,8 +520,11 @@ def top_tfidf_coefficients(
     text_transformer = pre.named_transformers_["text"]
     clf = final_model.named_steps["clf"]
     names = text_transformer.get_feature_names_out()
-    coefs = clf.coef_[0]
-    order = np.argsort(coefs)
+    # The full coefficient vector is the TF-IDF block followed by the numeric
+    # metadata/demographic block. Order and export only the TF-IDF slice so
+    # dominant numeric coefficients can never leak into term selection.
+    text_coefs = np.asarray(clf.coef_[0])[: len(names)]
+    order = np.argsort(text_coefs)
     negatives = order[:top_k]
     positives = order[::-1][:top_k]
     rows = []
@@ -518,7 +533,7 @@ def top_tfidf_coefficients(
             {
                 "rank": rank,
                 "term": names[idx],
-                "coefficient": float(coefs[idx]),
+                "coefficient": float(text_coefs[idx]),
                 "direction": "positive",
                 "association": "satisfied_binary=1 (satisfied)",
             }
@@ -528,7 +543,7 @@ def top_tfidf_coefficients(
             {
                 "rank": rank,
                 "term": names[idx],
-                "coefficient": float(coefs[idx]),
+                "coefficient": float(text_coefs[idx]),
                 "direction": "negative",
                 "association": "satisfied_binary=0 (not satisfied)",
             }

@@ -153,6 +153,31 @@ class ValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "binary"):
             TRAIN.validate_dataframe(df)
 
+    def test_fractional_target_raises(self) -> None:
+        # Regression: fractional values were silently truncated by int casting.
+        df = synthetic_frame()
+        df[TRAIN.TARGET] = df[TRAIN.TARGET].astype(float)
+        df.loc[df.index[0], TRAIN.TARGET] = 0.5
+        with self.assertRaisesRegex(ValueError, "binary"):
+            TRAIN.validate_dataframe(df)
+
+    def test_string_fractional_target_raises(self) -> None:
+        # Regression: CSV-like string "0.5" parsed to fractional then truncated.
+        df = synthetic_frame()
+        df[TRAIN.TARGET] = df[TRAIN.TARGET].astype(object)
+        df.loc[df.index[0], TRAIN.TARGET] = "0.5"
+        with self.assertRaisesRegex(ValueError, "binary"):
+            TRAIN.validate_dataframe(df)
+
+    def test_prepare_model_frame_rejects_fractional_target(self) -> None:
+        # prepare_model_frame must not coerce a fractional target to a label;
+        # validation must fire before any integer casting occurs.
+        df = synthetic_frame()
+        df[TRAIN.TARGET] = df[TRAIN.TARGET].astype(float)
+        df.loc[df.index[0], TRAIN.TARGET] = 0.5
+        with self.assertRaisesRegex(ValueError, "binary"):
+            TRAIN.prepare_model_frame(df)
+
     def test_all_null_text_raises(self) -> None:
         df = synthetic_frame()
         df[TRAIN.TEXT] = None
@@ -190,6 +215,34 @@ class SplitTests(unittest.TestCase):
         frame_all_one[TRAIN.TARGET] = 1
         with self.assertRaisesRegex(ValueError, "both target labels"):
             TRAIN.make_grouped_split(frame_all_one, seed=42, test_size=0.25)
+
+
+class TopTfidfCoefficientsTests(unittest.TestCase):
+    def test_numeric_dominated_coefficients_stay_in_tfidf_block(self) -> None:
+        # Regression: the function sorted the FULL coefficient vector (TF-IDF
+        # block followed by numeric metadata/demographic coefficients) and then
+        # indexed the TF-IDF vocabulary with full-model positions. When numeric
+        # coefficients dominated, that produced out-of-bounds vocabulary access
+        # or wrong terms. Ordering must use only the TF-IDF coefficient slice.
+        from types import SimpleNamespace
+
+        vocab = ["bad", "good"]
+        text_transformer = SimpleNamespace(get_feature_names_out=lambda: vocab)
+        pre = SimpleNamespace(named_transformers_={"text": text_transformer})
+
+        class FakeClf:
+            # 2 TF-IDF coefficients + 3 numeric coefficients that dominate.
+            coef_ = [[0.1, -0.2, 50.0, -60.0, 70.0]]
+
+        model = SimpleNamespace(named_steps={"pre": pre, "clf": FakeClf()})
+
+        df = TRAIN.top_tfidf_coefficients(model, top_k=1)
+        self.assertEqual(set(df["term"]), {"good", "bad"})
+        self.assertEqual(set(df["direction"]), {"positive", "negative"})
+        pos = df.loc[df["direction"] == "positive", "coefficient"]
+        neg = df.loc[df["direction"] == "negative", "coefficient"]
+        self.assertEqual(float(pos.iloc[0]), 0.1)    # top TF-IDF positive
+        self.assertEqual(float(neg.iloc[0]), -0.2)   # top TF-IDF negative
 
 
 class EndToEndSmokeTests(unittest.TestCase):
